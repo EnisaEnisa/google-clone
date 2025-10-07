@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>File Upload Gallery</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>File Upload Gallery</h1>
+
+<div id="dropArea">Drag & Drop files here or click to select</div>
+<input type="file" id="fileInput" multiple style="display:none">
+
+<div id="fileList"></div>
+
+<!-- Modal -->
+<div id="modal">
+    <div class="modal-content"></div>
+    <span class="close">&times;</span>
+</div>
+
+<script>
+const dropArea = document.getElementById('dropArea');
+const fileInput = document.getElementById('fileInput');
+const fileList = document.getElementById('fileList');
+const modal = document.getElementById('modal');
+const modalContent = modal.querySelector('.modal-content');
+const closeBtn = modal.querySelector('.close');
+
+// Drag & Drop i klik
+dropArea.addEventListener('click', () => fileInput.click());
+dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('hover'); });
+dropArea.addEventListener('dragleave', () => dropArea.classList.remove('hover'));
+dropArea.addEventListener('drop', e => { e.preventDefault(); dropArea.classList.remove('hover'); handleFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+// Funkcija za dodavanje fajlova u galeriju
+function handleFiles(files) {
+    for (let file of files) {
+        const container = document.createElement('div');
+        container.className = 'file-container';
+
+        const isImage = file.type.startsWith('image/');
+        const img = document.createElement('img');
+        if(isImage) img.src = URL.createObjectURL(file);
+        container.appendChild(img);
+
+        const nameLabel = document.createElement('div');
+        nameLabel.className = 'file-name';
+        nameLabel.textContent = file.name;
+        container.appendChild(nameLabel);
+
+        // Download link
+        const downloadLink = document.createElement('a');
+        downloadLink.className = 'download-overlay';
+        downloadLink.href = URL.createObjectURL(file);
+        downloadLink.download = file.name;
+        downloadLink.textContent = 'Download';
+        container.appendChild(downloadLink);
+
+        fileList.prepend(container);
+
+        // Klik na sliku ili fajl
+        container.addEventListener('click', () => openModal(file, isImage));
+    }
+}
+
+// Modal funkcija
+function openModal(file, isImage) {
+    modalContent.innerHTML = '';
+
+    if(isImage) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.style.transform = 'scale(1)';
+
+        img.addEventListener('click', () => {
+            img.style.transform = img.style.transform === 'scale(1)' ? 'scale(5)' : 'scale(1)';
+        });
+
+        modalContent.appendChild(img);
+    } else {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(file);
+        link.download = file.name;
+        link.textContent = 'Download File';
+        link.style.color = 'white';
+        modalContent.appendChild(link);
+    }
+
+    modal.style.display = 'flex';
+}
+
+// Zatvaranje modala
+closeBtn.addEventListener('click', () => modal.style.display='none');
+modal.addEventListener('click', e => { if(e.target === modal) modal.style.display='none'; });
+
+</script>
+
+</body>
+</html>
+
